@@ -6,7 +6,7 @@
   <title>Drifting Cars Clockface Prototype</title>
   <style>
     :root {
-      --size: min(92vmin, 560px);
+      --size: min(88vmin, 560px);
       --ring-color: #2e2e2e;
       --tick-color: #6e6e6e;
       --text-color: #d7d7d7;
@@ -17,11 +17,55 @@
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
       background: #000;
       color: var(--text-color);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(16px, 3vw, 42px);
+      padding: 20px;
+    }
+
+    .controls {
+      width: min(320px, 32vw);
+      min-width: 220px;
+      background: #0d0d0d;
+      border: 1px solid #303030;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .controls h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .controls p {
+      margin: 0 0 14px;
+      opacity: 0.85;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .control {
+      margin-top: 12px;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .control input[type="range"] {
+      width: 100%;
     }
 
     .watch {
@@ -53,12 +97,27 @@
       background: #b3b3b3;
     }
 
+    #digitalTime {
+      position: absolute;
+      left: 50%;
+      top: 12%;
+      transform: translateX(-50%);
+      min-width: 170px;
+      text-align: center;
+      font-size: clamp(32px, 6.2vmin, 44px);
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: #f4f4f4;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+      pointer-events: none;
+    }
+
     #car {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 21%;
-      max-width: 130px;
+      width: 28%;
+      max-width: 190px;
       pointer-events: none;
       transform-origin: 50% 50%;
       filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.8));
@@ -76,23 +135,40 @@
       background: #fff;
       box-shadow: 0 0 0 3px #1a1a1a;
     }
-
-    .label {
-      position: absolute;
-      left: 50%;
-      bottom: 7%;
-      transform: translateX(-50%);
-      font-size: 13px;
-      opacity: 0.86;
-      text-align: center;
-    }
   </style>
 </head>
 <body>
-  <div class="watch" id="watch"></div>
+  <main class="layout">
+    <aside class="controls">
+      <h2>Prototype Controls</h2>
+      <p>All tuning UI is outside the watch face so you can preview clean placement.</p>
+
+      <div class="control">
+        <label for="carSizeSlider">Car Size <span id="carSizeValue">28%</span></label>
+        <input id="carSizeSlider" type="range" min="16" max="40" value="28" />
+      </div>
+
+      <div class="control">
+        <label for="carRadiusSlider">Car Distance From Center <span id="carRadiusValue">0.39×</span></label>
+        <input id="carRadiusSlider" type="range" min="0.30" max="0.46" step="0.01" value="0.39" />
+      </div>
+
+      <p style="margin-top:14px;">Car follows seconds clockwise and stays tangent to the circle.</p>
+    </aside>
+
+    <div class="watch" id="watch">
+      <div id="digitalTime">00:00</div>
+    </div>
+  </main>
 
   <script>
     const watch = document.getElementById('watch');
+    const digitalTime = document.getElementById('digitalTime');
+
+    const carSizeSlider = document.getElementById('carSizeSlider');
+    const carRadiusSlider = document.getElementById('carRadiusSlider');
+    const carSizeValue = document.getElementById('carSizeValue');
+    const carRadiusValue = document.getElementById('carRadiusValue');
 
     for (let i = 0; i < 60; i++) {
       const tick = document.createElement('div');
@@ -119,27 +195,29 @@
     hub.className = 'hub';
     watch.appendChild(hub);
 
-    const label = document.createElement('div');
-    label.className = 'label';
-    label.textContent = 'Car follows seconds clockwise, tangent to circle';
-    watch.appendChild(label);
+    function updateSliderLabels() {
+      car.style.width = `${carSizeSlider.value}%`;
+      carSizeValue.textContent = `${carSizeSlider.value}%`;
+      carRadiusValue.textContent = `${Number(carRadiusSlider.value).toFixed(2)}×`;
+    }
+
+    function updateDigitalTime(now) {
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      digitalTime.textContent = `${h}:${m}`;
+    }
 
     function updateCar() {
       const now = new Date();
       const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
-      const secAngle = seconds * 6; // 360 / 60
-
-      // Angle is measured clockwise from 12 o'clock.
+      const secAngle = seconds * 6;
       const theta = secAngle * Math.PI / 180;
 
-      // Radius where the car center rides around the dial.
-      const radius = watch.clientWidth * 0.39;
+      const radiusScale = Number(carRadiusSlider.value);
+      const radius = watch.clientWidth * radiusScale;
 
-      // Convert from clock angle to x/y coordinates.
       const x = radius * Math.sin(theta);
       const y = -radius * Math.cos(theta);
-
-      // Car points in tangent direction for clockwise movement.
       const rotation = secAngle;
 
       car.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`;
@@ -147,9 +225,14 @@
       const secInt = Math.floor(seconds) % 60;
       car.src = cars[secInt % cars.length];
 
+      updateDigitalTime(now);
       requestAnimationFrame(updateCar);
     }
 
+    carSizeSlider.addEventListener('input', updateSliderLabels);
+    carRadiusSlider.addEventListener('input', updateSliderLabels);
+
+    updateSliderLabels();
     updateCar();
   </script>
 </body>
