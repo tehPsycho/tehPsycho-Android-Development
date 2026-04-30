@@ -28,7 +28,7 @@
     .stepper input { text-align: center; padding: 6px; }
 
     .watch { position: relative; width: var(--size); aspect-ratio: 1; border-radius: 50%; background: var(--bg); border: 2px solid var(--ring-color); box-shadow: 0 0 0 8px #111, 0 16px 42px rgba(0, 0, 0, 0.55); overflow: hidden; }
-    #digitalTime { position: absolute; left: 50%; top: 12%; transform: translate(-50%, -50%); min-width: 170px; text-align: center; font-size: 40px; letter-spacing: 2px; font-weight: 700; color: #f4f4f4; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7); pointer-events: none; z-index: 3; }
+    #digitalTime { position: absolute; left: 50%; top: 12%; transform: translate(-50%, -50%); min-width: 170px; text-align: center; font-size: 40px; letter-spacing: 2px; font-weight: 700; color: #f4f4f4; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7); pointer-events: none; z-index: 0; }
     #smokeLayer { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
     .smoke-puff { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(240,240,240,0.58), rgba(110,110,110,0.22) 68%, rgba(80,80,80,0) 100%); filter: blur(1px); transform: translate(-50%, -50%); will-change: transform, opacity; }
     #car { position: absolute; left: 50%; top: 50%; width: 28%; max-width: 190px; pointer-events: none; transform-origin: 50% 50%; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.8)); will-change: transform; z-index: 2; }
@@ -51,12 +51,15 @@
       <div class="control"><label for="carRotationInput">Car Rotation Offset (°)</label><div class="stepper"><button class="step-btn" data-target="carRotationInput" data-step="-1">−</button><input id="carRotationInput" type="number" value="0" step="1" /><button class="step-btn" data-target="carRotationInput" data-step="1">+</button></div></div>
       <div class="control"><label for="rotationMultiplierInput">Orbit Speed Multiplier (×)</label><div class="stepper"><button class="step-btn" data-target="rotationMultiplierInput" data-step="-0.05">−</button><input id="rotationMultiplierInput" type="number" value="1" step="0.05" /><button class="step-btn" data-target="rotationMultiplierInput" data-step="0.05">+</button></div></div>
       <h3>Smoke Trail</h3>
-      <div class="control"><label for="smokeRotationInput">Smoke Rotation Offset (°)</label><div class="stepper"><button class="step-btn" data-target="smokeRotationInput" data-step="-1">−</button><input id="smokeRotationInput" type="number" value="-25" step="1" /><button class="step-btn" data-target="smokeRotationInput" data-step="1">+</button></div></div>
+      <div class="control"><label for="smokeRotationInput">Smoke Rotation Offset Left Tire (°)</label><div class="stepper"><button class="step-btn" data-target="smokeRotationInput" data-step="-1">−</button><input id="smokeRotationInput" type="number" value="-25" step="1" /><button class="step-btn" data-target="smokeRotationInput" data-step="1">+</button></div></div>
+      <div class="control"><label><span>Sync Tire Smoke Rotation</span><input id="syncSmokeRotationInput" type="checkbox" checked /></label></div>
+      <div class="control"><label for="smokeRotationRightInput">Smoke Rotation Offset Right Tire (°)</label><div class="stepper"><button class="step-btn" data-target="smokeRotationRightInput" data-step="-1">−</button><input id="smokeRotationRightInput" type="number" value="-25" step="1" /><button class="step-btn" data-target="smokeRotationRightInput" data-step="1">+</button></div></div>
+      <div class="control"><label for="smokeDistanceInput">Smoke Distance Emitted (short→long)</label><div class="stepper"><button class="step-btn" data-target="smokeDistanceInput" data-step="-0.2">−</button><input id="smokeDistanceInput" type="number" value="1.8" step="0.2" /><button class="step-btn" data-target="smokeDistanceInput" data-step="0.2">+</button></div></div>
       <div class="control"><label for="smokeSpreadInput">Smoke Spread</label><div class="stepper"><button class="step-btn" data-target="smokeSpreadInput" data-step="-0.1">−</button><input id="smokeSpreadInput" type="number" value="1.2" step="0.1" /><button class="step-btn" data-target="smokeSpreadInput" data-step="0.1">+</button></div></div>
       <div class="control"><label for="smokeOffsetXInput">Smoke Offset X (px, car local)</label><div class="stepper"><button class="step-btn" data-target="smokeOffsetXInput" data-step="-1">−</button><input id="smokeOffsetXInput" type="number" value="0" step="1" /><button class="step-btn" data-target="smokeOffsetXInput" data-step="1">+</button></div></div>
       <div class="control"><label for="smokeOffsetYInput">Smoke Offset Y (px, car local)</label><div class="stepper"><button class="step-btn" data-target="smokeOffsetYInput" data-step="-1">−</button><input id="smokeOffsetYInput" type="number" value="22" step="1" /><button class="step-btn" data-target="smokeOffsetYInput" data-step="1">+</button></div></div>
       <div class="control"><label for="smokeDensityInput">Smoke Density (thin→thick)</label><div class="stepper"><button class="step-btn" data-target="smokeDensityInput" data-step="-0.2">−</button><input id="smokeDensityInput" type="number" value="1.8" step="0.2" /><button class="step-btn" data-target="smokeDensityInput" data-step="0.2">+</button></div></div>
-      <p style="margin-top:14px;">Smoke now emits from a car-local origin and centerline (not orbit center), with unrestricted thickness control.</p>
+      <p style="margin-top:14px;">The right-tire smoke position mirrors left-tire X across the car centerline. Tune only left X/Y and both tire trails will follow.</p>
     </aside>
 
     <div class="watch" id="watch">
@@ -79,6 +82,9 @@
     const carRotationInput = document.getElementById('carRotationInput');
     const rotationMultiplierInput = document.getElementById('rotationMultiplierInput');
     const smokeRotationInput = document.getElementById('smokeRotationInput');
+    const syncSmokeRotationInput = document.getElementById('syncSmokeRotationInput');
+    const smokeRotationRightInput = document.getElementById('smokeRotationRightInput');
+    const smokeDistanceInput = document.getElementById('smokeDistanceInput');
     const smokeSpreadInput = document.getElementById('smokeSpreadInput');
     const smokeOffsetXInput = document.getElementById('smokeOffsetXInput');
     const smokeOffsetYInput = document.getElementById('smokeOffsetYInput');
@@ -125,8 +131,9 @@
       const particle = document.createElement('div');
       particle.className = 'smoke-puff';
       const spread = Number(smokeSpreadInput.value) || 1;
+      const distance = Math.max(0.1, Number(smokeDistanceInput.value) || 0.1);
       const baseSize = 8 + Math.random() * 8;
-      particle.smoke = { x, y, vx: Math.sin(driftAngleDeg * Math.PI / 180) * (0.7 * spread), vy: -Math.cos(driftAngleDeg * Math.PI / 180) * (0.7 * spread), life: 1, size: baseSize, density };
+      particle.smoke = { x, y, vx: Math.sin(driftAngleDeg * Math.PI / 180) * (0.7 * spread), vy: -Math.cos(driftAngleDeg * Math.PI / 180) * (0.7 * spread), life: distance, size: baseSize, density, distance };
       smokeLayer.appendChild(particle);
       smokeParticles.push(particle);
     }
@@ -138,7 +145,8 @@
         puff.smoke.y += puff.smoke.vy + (Math.random() - 0.5) * 0.6;
         const density = Math.max(0, puff.smoke.density || 0);
         puff.smoke.size += 0.23 + (density * 0.08);
-        puff.smoke.life -= Math.max(0.003, 0.018 - density * 0.0035);
+        const distance = Math.max(0.1, puff.smoke.distance || 0.1);
+        puff.smoke.life -= Math.max(0.001, (0.018 - density * 0.0035) / distance);
         if (puff.smoke.life <= 0) {
           puff.remove();
           smokeParticles.splice(i, 1);
@@ -153,6 +161,11 @@
     }
 
     function updateDigitalTime(now) { const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0'); digitalTime.textContent = `${h}:${m}`; }
+    function updateSmokeRotationSyncState() {
+      const isSynced = syncSmokeRotationInput.checked;
+      smokeRotationRightInput.disabled = isSynced;
+      if (isSynced) smokeRotationRightInput.value = smokeRotationInput.value;
+    }
 
     let frame = 0;
     function updateCar() {
@@ -170,12 +183,20 @@
         const carTheta = carRotation * Math.PI / 180;
         const localOffsetX = Number(smokeOffsetXInput.value) || 0;
         const localOffsetY = Number(smokeOffsetYInput.value) || 0;
-        const smokeOriginX = x + (localOffsetX * Math.cos(carTheta)) - (localOffsetY * Math.sin(carTheta));
-        const smokeOriginY = y + (localOffsetX * Math.sin(carTheta)) + (localOffsetY * Math.cos(carTheta));
-        const smokeAngle = carRotation + (Number(smokeRotationInput.value) || 0);
+        const leftSmokeOriginX = x + (localOffsetX * Math.cos(carTheta)) - (localOffsetY * Math.sin(carTheta));
+        const leftSmokeOriginY = y + (localOffsetX * Math.sin(carTheta)) + (localOffsetY * Math.cos(carTheta));
+        const mirroredOffsetX = -localOffsetX;
+        const rightSmokeOriginX = x + (mirroredOffsetX * Math.cos(carTheta)) - (localOffsetY * Math.sin(carTheta));
+        const rightSmokeOriginY = y + (mirroredOffsetX * Math.sin(carTheta)) + (localOffsetY * Math.cos(carTheta));
+        const leftSmokeAngle = carRotation + (Number(smokeRotationInput.value) || 0);
+        const rightRotationOffset = syncSmokeRotationInput.checked ? (Number(smokeRotationInput.value) || 0) : (Number(smokeRotationRightInput.value) || 0);
+        const rightSmokeAngle = carRotation + rightRotationOffset;
         const density = Math.max(0, Number(smokeDensityInput.value) || 0);
         const burst = Math.max(1, Math.round(density));
-        for (let i = 0; i < burst; i++) emitSmoke(smokeOriginX, smokeOriginY, smokeAngle + ((Math.random() - 0.5) * 8));
+        for (let i = 0; i < burst; i++) {
+          emitSmoke(leftSmokeOriginX, leftSmokeOriginY, leftSmokeAngle + ((Math.random() - 0.5) * 8));
+          emitSmoke(rightSmokeOriginX, rightSmokeOriginY, rightSmokeAngle + ((Math.random() - 0.5) * 8));
+        }
       }
       frame += 1;
 
@@ -185,9 +206,12 @@
       requestAnimationFrame(updateCar);
     }
 
-    [timeSizeInput, timeXInput, timeYInput, timeColorInput, carSizeInput, carRadiusInput, carRotationInput, rotationMultiplierInput, smokeRotationInput, smokeSpreadInput, smokeOffsetXInput, smokeOffsetYInput, smokeDensityInput].forEach((input) => input.addEventListener('input', updateControlValues));
+    [timeSizeInput, timeXInput, timeYInput, timeColorInput, carSizeInput, carRadiusInput, carRotationInput, rotationMultiplierInput, smokeRotationInput, smokeRotationRightInput, smokeDistanceInput, smokeSpreadInput, smokeOffsetXInput, smokeOffsetYInput, smokeDensityInput].forEach((input) => input.addEventListener('input', updateControlValues));
+    smokeRotationInput.addEventListener('input', updateSmokeRotationSyncState);
+    syncSmokeRotationInput.addEventListener('change', updateSmokeRotationSyncState);
     setupSteppers();
     updateControlValues();
+    updateSmokeRotationSyncState();
     updateCar();
   </script>
 </body>
