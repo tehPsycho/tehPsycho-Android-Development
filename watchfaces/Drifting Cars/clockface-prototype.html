@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drifting Cars Clockface Prototype</title>
+  <style>
+    :root {
+      --size: min(92vmin, 560px);
+      --ring-color: #2e2e2e;
+      --tick-color: #6e6e6e;
+      --text-color: #d7d7d7;
+      --bg: radial-gradient(circle at 40% 30%, #1f1f1f, #0f0f0f 70%);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #000;
+      color: var(--text-color);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .watch {
+      position: relative;
+      width: var(--size);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--ring-color);
+      box-shadow: 0 0 0 8px #111, 0 16px 42px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+    }
+
+    .tick {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: 50% calc(var(--size) * -0.42);
+      width: 2px;
+      height: 12px;
+      background: var(--tick-color);
+      opacity: 0.5;
+    }
+
+    .tick.hour {
+      height: 20px;
+      width: 3px;
+      opacity: 0.9;
+      background: #b3b3b3;
+    }
+
+    #car {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 21%;
+      max-width: 130px;
+      pointer-events: none;
+      transform-origin: 50% 50%;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.8));
+      will-change: transform;
+    }
+
+    .hub {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      box-shadow: 0 0 0 3px #1a1a1a;
+    }
+
+    .label {
+      position: absolute;
+      left: 50%;
+      bottom: 7%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      opacity: 0.86;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="watch" id="watch"></div>
+
+  <script>
+    const watch = document.getElementById('watch');
+
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = i % 5 === 0 ? 'tick hour' : 'tick';
+      tick.style.transform = `translate(-50%, -50%) rotate(${i * 6}deg) translateY(calc(var(--size) * -0.44))`;
+      watch.appendChild(tick);
+    }
+
+    const car = document.createElement('img');
+    car.id = 'car';
+    car.alt = 'Car second hand';
+
+    const cars = [
+      'car_images/Nissan Skyline R34 - Matte White.png',
+      'car_images/Porshe 911 - Glossy red.png',
+      'car_images/Subaru WRX STI - Metallic blue.png',
+    ];
+
+    const secondNow = new Date().getSeconds();
+    car.src = cars[secondNow % cars.length];
+    watch.appendChild(car);
+
+    const hub = document.createElement('div');
+    hub.className = 'hub';
+    watch.appendChild(hub);
+
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = 'Car follows seconds clockwise, tangent to circle';
+    watch.appendChild(label);
+
+    function updateCar() {
+      const now = new Date();
+      const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+      const secAngle = seconds * 6; // 360 / 60
+
+      // Angle is measured clockwise from 12 o'clock.
+      const theta = secAngle * Math.PI / 180;
+
+      // Radius where the car center rides around the dial.
+      const radius = watch.clientWidth * 0.39;
+
+      // Convert from clock angle to x/y coordinates.
+      const x = radius * Math.sin(theta);
+      const y = -radius * Math.cos(theta);
+
+      // Car points in tangent direction for clockwise movement.
+      const rotation = secAngle;
+
+      car.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`;
+
+      const secInt = Math.floor(seconds) % 60;
+      car.src = cars[secInt % cars.length];
+
+      requestAnimationFrame(updateCar);
+    }
+
+    updateCar();
+  </script>
+</body>
+</html>
