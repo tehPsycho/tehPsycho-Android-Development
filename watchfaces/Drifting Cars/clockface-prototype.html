@@ -55,6 +55,8 @@
       <div class="control"><label for="smokeRotationRightInput">Smoke Rotation Offset Right Tire (°)</label><div class="stepper"><button class="step-btn" data-target="smokeRotationRightInput" data-step="-1">−</button><input id="smokeRotationRightInput" type="number" value="-25" step="1" /><button class="step-btn" data-target="smokeRotationRightInput" data-step="1">+</button></div></div>
       <div class="control"><label for="smokeDistanceInput">Smoke Distance Emitted (short→long)</label><div class="stepper"><button class="step-btn" data-target="smokeDistanceInput" data-step="-0.2">−</button><input id="smokeDistanceInput" type="number" value="1.8" step="0.2" /><button class="step-btn" data-target="smokeDistanceInput" data-step="0.2">+</button></div></div>
       <div class="control"><label for="smokeSpreadInput">Smoke Spread</label><div class="stepper"><button class="step-btn" data-target="smokeSpreadInput" data-step="-0.1">−</button><input id="smokeSpreadInput" type="number" value="1.2" step="0.1" /><button class="step-btn" data-target="smokeSpreadInput" data-step="0.1">+</button></div></div>
+      <div class="control"><label for="smokeShootSpeedInput">Smoke Shoot Speed (slow→fast)</label><div class="stepper"><button class="step-btn" data-target="smokeShootSpeedInput" data-step="-0.1">−</button><input id="smokeShootSpeedInput" type="number" value="1.0" step="0.1" /><button class="step-btn" data-target="smokeShootSpeedInput" data-step="0.1">+</button></div></div>
+      <div class="control"><label for="smokeFlowInput">Smoke Flow (spirts→continuous)</label><div class="stepper"><button class="step-btn" data-target="smokeFlowInput" data-step="-0.2">−</button><input id="smokeFlowInput" type="number" value="2.4" step="0.2" /><button class="step-btn" data-target="smokeFlowInput" data-step="0.2">+</button></div></div>
       <div class="control"><label for="smokeOffsetXInput">Smoke Offset X (px, car width)</label><div class="stepper"><button class="step-btn" data-target="smokeOffsetXInput" data-step="-1">−</button><input id="smokeOffsetXInput" type="number" value="22" step="1" /><button class="step-btn" data-target="smokeOffsetXInput" data-step="1">+</button></div></div>
       <div class="control"><label for="smokeOffsetYInput">Smoke Offset Y (px, car length)</label><div class="stepper"><button class="step-btn" data-target="smokeOffsetYInput" data-step="-1">−</button><input id="smokeOffsetYInput" type="number" value="0" step="1" /><button class="step-btn" data-target="smokeOffsetYInput" data-step="1">+</button></div></div>
       <div class="control"><label for="smokeDensityInput">Smoke Density (thin→thick)</label><div class="stepper"><button class="step-btn" data-target="smokeDensityInput" data-step="-0.2">−</button><input id="smokeDensityInput" type="number" value="1.8" step="0.2" /><button class="step-btn" data-target="smokeDensityInput" data-step="0.2">+</button></div></div>
@@ -87,6 +89,8 @@
     const smokeSpreadInput = document.getElementById('smokeSpreadInput');
     const smokeOffsetXInput = document.getElementById('smokeOffsetXInput');
     const smokeOffsetYInput = document.getElementById('smokeOffsetYInput');
+    const smokeShootSpeedInput = document.getElementById('smokeShootSpeedInput');
+    const smokeFlowInput = document.getElementById('smokeFlowInput');
     const smokeDensityInput = document.getElementById('smokeDensityInput');
     const smokeColorInput = document.getElementById('smokeColorInput');
 
@@ -132,8 +136,10 @@
       particle.className = 'smoke-puff';
       const spread = Number(smokeSpreadInput.value) || 1;
       const distance = Math.max(0.1, Number(smokeDistanceInput.value) || 0.1);
+      const shootSpeed = Math.max(0.1, Number(smokeShootSpeedInput.value) || 0.1);
       const baseSize = 8 + Math.random() * 8;
-      particle.smoke = { x, y, vx: Math.sin(driftAngleDeg * Math.PI / 180) * (0.7 * spread), vy: -Math.cos(driftAngleDeg * Math.PI / 180) * (0.7 * spread), life: distance, size: baseSize, density, distance };
+      const velocity = 0.7 * spread * shootSpeed;
+      particle.smoke = { x, y, vx: Math.sin(driftAngleDeg * Math.PI / 180) * velocity, vy: -Math.cos(driftAngleDeg * Math.PI / 180) * velocity, life: distance, size: baseSize, density, distance };
       const { r, g, b } = hexToRgb(smokeColorInput.value);
       particle.style.background = `radial-gradient(circle at 35% 35%, rgba(${r}, ${g}, ${b}, 0.58), rgba(${r}, ${g}, ${b}, 0.22) 68%, rgba(${r}, ${g}, ${b}, 0) 100%)`;
       smokeLayer.appendChild(particle);
@@ -171,7 +177,7 @@
       return { r: (value >> 16) & 255, g: (value >> 8) & 255, b: value & 255 };
     }
 
-    let frame = 0;
+    let smokeSpawnAccumulator = 0;
     function updateCar() {
       const now = new Date();
       const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
@@ -183,7 +189,11 @@
       const carRotation = secAngle + (Number(carRotationInput.value) || 0);
       car.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${carRotation}deg)`;
 
-      if (frame % 3 === 0) {
+      const spinSpeed = Math.max(0.15, Math.abs(Number(rotationMultiplierInput.value) || 0));
+      const flow = Math.max(0.1, Number(smokeFlowInput.value) || 0.1);
+      const density = Math.max(0, Number(smokeDensityInput.value) || 0);
+      smokeSpawnAccumulator += (flow * Math.max(0.4, density) * spinSpeed) / 60;
+      while (smokeSpawnAccumulator >= 1) {
         const carTheta = carRotation * Math.PI / 180;
         const lateralOffsetX = Number(smokeOffsetXInput.value) || 0;
         const longitudinalOffsetY = Number(smokeOffsetYInput.value) || 0;
@@ -195,14 +205,10 @@
         const leftSmokeAngle = carRotation + (Number(smokeRotationInput.value) || 0);
         const rightRotationOffset = Number(smokeRotationRightInput.value) || 0;
         const rightSmokeAngle = carRotation + rightRotationOffset;
-        const density = Math.max(0, Number(smokeDensityInput.value) || 0);
-        const burst = Math.max(1, Math.round(density));
-        for (let i = 0; i < burst; i++) {
-          emitSmoke(leftSmokeOriginX, leftSmokeOriginY, leftSmokeAngle + ((Math.random() - 0.5) * 8));
-          emitSmoke(rightSmokeOriginX, rightSmokeOriginY, rightSmokeAngle + ((Math.random() - 0.5) * 8));
-        }
+        emitSmoke(leftSmokeOriginX, leftSmokeOriginY, leftSmokeAngle + ((Math.random() - 0.5) * 8));
+        emitSmoke(rightSmokeOriginX, rightSmokeOriginY, rightSmokeAngle + ((Math.random() - 0.5) * 8));
+        smokeSpawnAccumulator -= 1;
       }
-      frame += 1;
 
       car.src = cars[Math.floor(seconds) % cars.length];
       updateDigitalTime(now);
@@ -210,7 +216,7 @@
       requestAnimationFrame(updateCar);
     }
 
-    [timeSizeInput, timeXInput, timeYInput, timeColorInput, carSizeInput, carRadiusInput, carRotationInput, rotationMultiplierInput, smokeRotationInput, smokeRotationRightInput, smokeDistanceInput, smokeSpreadInput, smokeOffsetXInput, smokeOffsetYInput, smokeDensityInput, smokeColorInput].forEach((input) => input.addEventListener('input', updateControlValues));
+    [timeSizeInput, timeXInput, timeYInput, timeColorInput, carSizeInput, carRadiusInput, carRotationInput, rotationMultiplierInput, smokeRotationInput, smokeRotationRightInput, smokeDistanceInput, smokeSpreadInput, smokeShootSpeedInput, smokeFlowInput, smokeOffsetXInput, smokeOffsetYInput, smokeDensityInput, smokeColorInput].forEach((input) => input.addEventListener('input', updateControlValues));
     setupSteppers();
     updateControlValues();
     updateCar();
