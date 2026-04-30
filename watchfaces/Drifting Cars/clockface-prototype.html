@@ -32,7 +32,9 @@
     }
 
     .controls {
-      width: min(320px, 32vw);
+      width: min(340px, 34vw);
+      max-height: 90vh;
+      overflow: auto;
       min-width: 220px;
       background: #0d0d0d;
       border: 1px solid #303030;
@@ -64,8 +66,44 @@
       opacity: 0.95;
     }
 
-    .control input[type="range"] {
+    .control input[type="range"],
+    .control input[type="number"],
+    .control input[type="color"] {
       width: 100%;
+    }
+
+    .bound-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .bound-inputs label {
+      display: block;
+      margin: 0;
+    }
+
+    .bound-inputs span {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 4px;
+      opacity: 0.85;
+    }
+
+    .bound-inputs input {
+      background: #171717;
+      border: 1px solid #323232;
+      border-radius: 6px;
+      color: #ddd;
+      padding: 6px;
+    }
+
+    .readout {
+      margin-top: 6px;
+      font-size: 12px;
+      opacity: 0.88;
+      text-align: right;
     }
 
     .watch {
@@ -101,10 +139,10 @@
       position: absolute;
       left: 50%;
       top: 12%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
       min-width: 170px;
       text-align: center;
-      font-size: clamp(32px, 6.2vmin, 44px);
+      font-size: 40px;
       letter-spacing: 2px;
       font-weight: 700;
       color: #f4f4f4;
@@ -143,17 +181,56 @@
       <h2>Prototype Controls</h2>
       <p>All tuning UI is outside the watch face so you can preview clean placement.</p>
 
+      <h3>Time Text</h3>
       <div class="control">
-        <label for="carSizeSlider">Car Size <span id="carSizeValue">28%</span></label>
-        <input id="carSizeSlider" type="range" min="16" max="40" value="28" />
+        <label for="timeSizeSlider">Time Size <span id="timeSizeValue">40px</span></label>
+        <input id="timeSizeSlider" type="range" min="24" max="70" value="40" />
+      </div>
+      <div class="control">
+        <label for="timeXSlider">Time X Position <span id="timeXValue">50%</span></label>
+        <input id="timeXSlider" type="range" min="10" max="90" value="50" />
+      </div>
+      <div class="control">
+        <label for="timeYSlider">Time Y Position <span id="timeYValue">12%</span></label>
+        <input id="timeYSlider" type="range" min="5" max="50" value="12" />
+      </div>
+      <div class="control">
+        <label for="timeColorInput">Time Color <span id="timeColorValue">#f4f4f4</span></label>
+        <input id="timeColorInput" type="color" value="#f4f4f4" />
+      </div>
+
+      <h3>Car Motion</h3>
+      <div class="control">
+        <label for="carSizeSlider">Car Size Slider Position</label>
+        <input id="carSizeSlider" type="range" min="16" max="40" step="0.5" value="28" />
+        <div class="readout" id="carSizeReadout">Current: 28.0%</div>
+        <div class="bound-inputs">
+          <label><span>Size Min %</span><input id="carSizeMinInput" type="number" step="0.5" value="16" /></label>
+          <label><span>Size Max %</span><input id="carSizeMaxInput" type="number" step="0.5" value="40" /></label>
+        </div>
       </div>
 
       <div class="control">
-        <label for="carRadiusSlider">Car Distance From Center <span id="carRadiusValue">0.39×</span></label>
-        <input id="carRadiusSlider" type="range" min="0.30" max="0.46" step="0.01" value="0.39" />
+        <label for="carRadiusSlider">Car Radius Slider Position</label>
+        <input id="carRadiusSlider" type="range" min="0.30" max="0.46" step="0.005" value="0.39" />
+        <div class="readout" id="carRadiusReadout">Current: 0.390×</div>
+        <div class="bound-inputs">
+          <label><span>Radius Min ×</span><input id="carRadiusMinInput" type="number" step="0.01" value="0.30" /></label>
+          <label><span>Radius Max ×</span><input id="carRadiusMaxInput" type="number" step="0.01" value="0.46" /></label>
+        </div>
       </div>
 
-      <p style="margin-top:14px;">Car follows seconds clockwise and stays tangent to the circle.</p>
+      <div class="control">
+        <label for="carRotationSlider">Car Rotation Offset <span id="carRotationValue">0°</span></label>
+        <input id="carRotationSlider" type="range" min="-180" max="180" value="0" />
+      </div>
+
+      <div class="control">
+        <label for="rotationMultiplierSlider">Orbit Speed Multiplier <span id="rotationMultiplierValue">1.00×</span></label>
+        <input id="rotationMultiplierSlider" type="range" min="0" max="4" step="0.05" value="1" />
+      </div>
+
+      <p style="margin-top:14px;">Car follows seconds clockwise, stays tangent to the circle, and can be sped up with multiplier.</p>
     </aside>
 
     <div class="watch" id="watch">
@@ -165,10 +242,27 @@
     const watch = document.getElementById('watch');
     const digitalTime = document.getElementById('digitalTime');
 
+    const timeSizeSlider = document.getElementById('timeSizeSlider');
+    const timeXSlider = document.getElementById('timeXSlider');
+    const timeYSlider = document.getElementById('timeYSlider');
+    const timeColorInput = document.getElementById('timeColorInput');
+    const timeSizeValue = document.getElementById('timeSizeValue');
+    const timeXValue = document.getElementById('timeXValue');
+    const timeYValue = document.getElementById('timeYValue');
+    const timeColorValue = document.getElementById('timeColorValue');
+
     const carSizeSlider = document.getElementById('carSizeSlider');
     const carRadiusSlider = document.getElementById('carRadiusSlider');
-    const carSizeValue = document.getElementById('carSizeValue');
-    const carRadiusValue = document.getElementById('carRadiusValue');
+    const carSizeMinInput = document.getElementById('carSizeMinInput');
+    const carSizeMaxInput = document.getElementById('carSizeMaxInput');
+    const carRadiusMinInput = document.getElementById('carRadiusMinInput');
+    const carRadiusMaxInput = document.getElementById('carRadiusMaxInput');
+    const carSizeReadout = document.getElementById('carSizeReadout');
+    const carRadiusReadout = document.getElementById('carRadiusReadout');
+    const carRotationSlider = document.getElementById('carRotationSlider');
+    const carRotationValue = document.getElementById('carRotationValue');
+    const rotationMultiplierSlider = document.getElementById('rotationMultiplierSlider');
+    const rotationMultiplierValue = document.getElementById('rotationMultiplierValue');
 
     for (let i = 0; i < 60; i++) {
       const tick = document.createElement('div');
@@ -195,10 +289,42 @@
     hub.className = 'hub';
     watch.appendChild(hub);
 
-    function updateSliderLabels() {
+    function syncSliderBounds(slider, minInput, maxInput, fallbackSpan = 0.1) {
+      let min = Number(minInput.value);
+      let max = Number(maxInput.value);
+
+      if (!Number.isFinite(min)) min = Number(slider.min);
+      if (!Number.isFinite(max)) max = Number(slider.max);
+      if (max <= min) {
+        max = min + fallbackSpan;
+        maxInput.value = String(max);
+      }
+
+      slider.min = String(min);
+      slider.max = String(max);
+
+      let value = Number(slider.value);
+      value = Math.min(max, Math.max(min, value));
+      slider.value = String(value);
+    }
+
+    function updateControlLabels() {
+      digitalTime.style.fontSize = `${timeSizeSlider.value}px`;
+      digitalTime.style.left = `${timeXSlider.value}%`;
+      digitalTime.style.top = `${timeYSlider.value}%`;
+      digitalTime.style.color = timeColorInput.value;
+
+      timeSizeValue.textContent = `${timeSizeSlider.value}px`;
+      timeXValue.textContent = `${timeXSlider.value}%`;
+      timeYValue.textContent = `${timeYSlider.value}%`;
+      timeColorValue.textContent = timeColorInput.value;
+
       car.style.width = `${carSizeSlider.value}%`;
-      carSizeValue.textContent = `${carSizeSlider.value}%`;
-      carRadiusValue.textContent = `${Number(carRadiusSlider.value).toFixed(2)}×`;
+      carSizeReadout.textContent = `Current: ${Number(carSizeSlider.value).toFixed(1)}%`;
+      carRadiusReadout.textContent = `Current: ${Number(carRadiusSlider.value).toFixed(3)}×`;
+
+      carRotationValue.textContent = `${Number(carRotationSlider.value).toFixed(0)}°`;
+      rotationMultiplierValue.textContent = `${Number(rotationMultiplierSlider.value).toFixed(2)}×`;
     }
 
     function updateDigitalTime(now) {
@@ -210,7 +336,8 @@
     function updateCar() {
       const now = new Date();
       const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
-      const secAngle = seconds * 6;
+      const multiplier = Number(rotationMultiplierSlider.value);
+      const secAngle = seconds * 6 * multiplier;
       const theta = secAngle * Math.PI / 180;
 
       const radiusScale = Number(carRadiusSlider.value);
@@ -218,7 +345,8 @@
 
       const x = radius * Math.sin(theta);
       const y = -radius * Math.cos(theta);
-      const rotation = secAngle;
+      const rotationOffset = Number(carRotationSlider.value);
+      const rotation = secAngle + rotationOffset;
 
       car.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`;
 
@@ -229,10 +357,28 @@
       requestAnimationFrame(updateCar);
     }
 
-    carSizeSlider.addEventListener('input', updateSliderLabels);
-    carRadiusSlider.addEventListener('input', updateSliderLabels);
+    const controlInputs = [
+      timeSizeSlider, timeXSlider, timeYSlider, timeColorInput,
+      carSizeSlider, carRadiusSlider, carRotationSlider, rotationMultiplierSlider
+    ];
+    controlInputs.forEach((input) => input.addEventListener('input', updateControlLabels));
 
-    updateSliderLabels();
+    const bounds = [
+      [carSizeSlider, carSizeMinInput, carSizeMaxInput, 1],
+      [carRadiusSlider, carRadiusMinInput, carRadiusMaxInput, 0.01],
+    ];
+
+    bounds.forEach(([slider, minInput, maxInput, fallback]) => {
+      const sync = () => {
+        syncSliderBounds(slider, minInput, maxInput, fallback);
+        updateControlLabels();
+      };
+      minInput.addEventListener('input', sync);
+      maxInput.addEventListener('input', sync);
+      sync();
+    });
+
+    updateControlLabels();
     updateCar();
   </script>
 </body>
