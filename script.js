@@ -10,7 +10,7 @@ const watches = [
     slug: "type-s",
     name: "Type S",
     tagline: "A performance-inspired analog face with precision instrument styling.",
-    heroImage: "images/type_s_watch_with_car.jpg",
+    heroImage: "images/type_s_watch_with_car.png",
     detailsPage: "watch-pages/type-s.html"
   }
 ];
