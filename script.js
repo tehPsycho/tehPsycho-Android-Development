@@ -12,6 +12,13 @@ const watches = [
     tagline: "A performance-inspired analog face with precision instrument styling.",
     heroImage: "images/type_s_watch_with_car.png",
     detailsPage: "watch-pages/type-s.html"
+  },
+  {
+    slug: "jeep",
+    name: "Jeep",
+    tagline: "Built for adventure. Coming soon.",
+    heroImage: "images/jeep_watch_with_car.png",
+    detailsPage: null
   }
 ];
 
@@ -50,12 +57,23 @@ function createWatchCard(watch) {
     media.appendChild(fallback);
   }
 
-  const link = document.createElement("a");
-  link.className = "cta-button";
-  link.href = watch.detailsPage;
-  link.textContent = "More about this watch";
+  const cta = watch.detailsPage
+    ? document.createElement("a")
+    : document.createElement("button");
 
-  card.append(title, media, link);
+  cta.className = "cta-button";
+
+  if (watch.detailsPage) {
+    cta.href = watch.detailsPage;
+    cta.textContent = "More about this watch";
+  } else {
+    cta.type = "button";
+    cta.disabled = true;
+    cta.classList.add("cta-button--disabled");
+    cta.textContent = "Comming soon";
+  }
+
+  card.append(title, media, cta);
   return card;
 }
 
