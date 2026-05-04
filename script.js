@@ -35,10 +35,6 @@ function createWatchCard(watch) {
   title.className = "watch-name";
   title.textContent = watch.name;
 
-  const tagline = document.createElement("p");
-  tagline.className = "watch-tagline";
-  tagline.textContent = watch.tagline;
-
   const media = document.createElement("div");
   media.className = "watch-media";
   if (watch.heroImage) {
@@ -59,7 +55,7 @@ function createWatchCard(watch) {
   link.href = watch.detailsPage;
   link.textContent = "More about this watch";
 
-  card.append(title, tagline, media, link);
+  card.append(title, media, link);
   return card;
 }
 
