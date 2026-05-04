@@ -1,14 +1,14 @@
 # Neon Orbit Watch Face
 
 ## Overview
-Second and newest watch face project.
+A futuristic, neon-inspired watch face concept centered on bold glow accents and instrument-style readability.
 
 ## Current Plan
-- Build and iterate in Android Studio.
-- Keep source in `android-studio/`.
+- Maintain and iterate on the visual asset set.
 - Keep project-specific privacy docs in `privacy/`.
+- Expand the dedicated watch detail page with feature notes and update history.
 
 ## Next Steps
-1. Create/import project in Android Studio under `android-studio/`.
-2. Implement base watch face style and complications.
-3. Validate privacy text before publishing.
+1. Add/refresh preview assets in `images/neon-orbit/`.
+2. Keep `watch-pages/neon-orbit.html` updated with latest notes.
+3. Replace `Play Store: Coming soon` when a real link is available.
