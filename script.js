@@ -3,7 +3,7 @@ const watches = [
     slug: "mustang",
     name: "Mustang",
     tagline: "True vintage classic styling.",
-    heroImage: "images/mustang_watch_with_car.jpg",
+    heroImage: "images/mustang_watch_with_car.png",
     detailsPage: "watch-pages/mustang.html"
   },
    {
