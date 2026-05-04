@@ -1,56 +1,110 @@
-# Android + Wear OS Development Repo
+# Watch Face Showcase Repository
 
-This repository is structured to support:
+This repository is now focused on **showcasing watch assets and watch face pages** only.
 
-- Shared/common Android and Wear OS assets that can be reused across projects.
-- Individually organized watch face projects.
-- Individually organized privacy statements/policies for each watch face.
+It is intentionally **not** an Android development repository.
 
-## Repository Structure
+Use it for:
+- Landing page (`index.html`) that lists all watches.
+- One detail page per watch (inside `watch-pages/`).
+- Asset storage for watch visuals (watch face images, dials, tick marks, needles, backgrounds, etc.).
+- Privacy/legal pages if needed.
+
+---
+
+## Current Structure
 
 ```text
 .
-├── common/                              # Shared resources used by multiple projects
-│   ├── design-tokens/                   # Colors, typography, spacing conventions
-│   ├── docs/                            # Shared technical docs/checklists
-│   └── templates/                       # Reusable starter templates/snippets
-├── watchfaces/                          # One folder per watch face project
-│   ├── _template/                       # Copy this to start a new watch face
-│   │   ├── README.md
-│   │   ├── android-studio/
-│   │   └── privacy/
-│   └── neon-orbit-watchface/            # Your 2nd and newest watch face
-│       ├── README.md
-│       ├── android-studio/              # Connect Android Studio project here
-│       │   └── .gitkeep
-│       └── privacy/
-│           └── PRIVACY_POLICY.md
-├── legal/                               # Published privacy policy artifacts
-│   ├── vintage-mustang-watch-privacy-policy.html
-│   └── neon-orbit-watchface-privacy-policy.html
-└── .gitkeep
+├── index.html
+├── script.js
+├── styles.css
+├── watch-pages/
+│   ├── type-s.html
+│   └── neon-orbit.html
+├── images/
+│   ├── type-s/
+│   └── neon-orbit/
+├── watchfaces/
+│   ├── _template/
+│   └── ...
+└── legal/
 ```
 
-## How to Start a New Watch Face
+---
 
-1. Copy `watchfaces/_template` to `watchfaces/<your-watchface-slug>`.
-2. Open Android Studio and create/import your watch face app.
-3. Place the Android Studio project inside `watchfaces/<your-watchface-slug>/android-studio`.
-4. Update that watch face's `README.md` and `privacy/PRIVACY_POLICY.md`.
-5. (Optional) Export a public HTML policy into `legal/`.
+## How to Add a New Watch Face to the Site
 
-## Connecting Your Newest Watch Face from Android Studio
+### 1) Create an image folder
+Create a new folder in `images/` using a slug:
 
-For your second/newest watch face (`neon-orbit-watchface`):
+```text
+images/<watch-slug>/
+```
 
-1. In Android Studio, choose **Open** (existing project) or **New Project**.
-2. Set/select project location:
-   `.../tehPsycho-Android-Development/watchfaces/neon-orbit-watchface/android-studio`
-3. Initialize modules as normal (Wear OS app/watch face service).
-4. Commit from repo root so project and privacy docs stay together.
+Recommended image files:
+- `device.png` (main preview used on landing and details page)
+- optional additional assets (examples):
+  - `dial.png`
+  - `tick-marks.png`
+  - `needle-hour.png`
+  - `needle-minute.png`
+  - `needle-second.png`
+  - `background.jpg`
 
-## Naming Recommendations
+> You can keep as many extra images as you want in that same folder.
 
-- Use lowercase kebab-case folder names (example: `neon-orbit-watchface`).
-- Keep privacy statements near each project in `privacy/`.
-- Keep publish-ready legal pages in `legal/`.
+### 2) Add the watch to `script.js`
+Append an object to the `watches` array:
+
+```js
+{
+  slug: "my-watch",
+  name: "My Watch",
+  tagline: "Short one-line description.",
+  heroImage: "images/my-watch/device.png",
+  detailsPage: "watch-pages/my-watch.html"
+}
+```
+
+### 3) Create the watch detail page
+Create a file:
+
+```text
+watch-pages/my-watch.html
+```
+
+Start by copying one of the existing pages in `watch-pages/`, then update:
+- `<title>`
+- `<h1>`
+- intro description
+- preview image path
+
+### 4) Set Play Store link behavior on detail page
+Until a real store link exists, keep the button text:
+
+```text
+Play Store: Coming soon
+```
+
+When ready, replace it with a real URL and updated label.
+
+---
+
+## Link Behavior Rules
+
+- On the landing page, each card button must be:
+  - **Label:** `More about this watch`
+  - **Target:** its watch-specific page in `watch-pages/`
+- On each watch-specific page, Play Store button should be:
+  - **Label:** `Play Store: Coming soon` (until real URL exists)
+
+---
+
+## Publishing to GitHub Pages
+
+1. Push to your default branch.
+2. Ensure GitHub Pages is configured to deploy from the repository root (or configured docs folder if you later move files).
+3. Confirm the landing page loads:
+   - `https://tehpsycho.github.io/tehPsycho-Android-Development/index.html`
+
