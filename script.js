@@ -1,17 +1,17 @@
 const watches = [
   {
+    slug: "mustang",
+    name: "Mustang",
+    tagline: "True vintage classic styling.",
+    heroImage: "images/mustang_watch_with_car.jpg",
+    detailsPage: "watch-pages/mustang.html"
+  },
+   {
     slug: "type-s",
     name: "Type S",
     tagline: "A performance-inspired analog face with precision instrument styling.",
-    heroImage: "images/type-s/device.png",
+    heroImage: "images/type_s_watch_with_car.jpg",
     detailsPage: "watch-pages/type-s.html"
-  },
-  {
-    slug: "neon-orbit",
-    name: "Neon Orbit",
-    tagline: "A futuristic neon dashboard look built for bold night-time visuals.",
-    heroImage: "images/neon-orbit/device.png",
-    detailsPage: "watch-pages/neon-orbit.html"
   }
 ];
 
